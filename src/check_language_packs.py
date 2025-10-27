@@ -74,16 +74,13 @@ def print_comparison_results():
     """
 
 
-def main(file1: Path, file2: Path):
+def upload_files(file1: Path, file2: Path):
     # 校验文件是否存在
     for file_path in [file1, file2]:
         if not Path(file_path).exists():
             print(f"error:文件{file_path}不存在")
-
     try:
         only_in_file1,only_in_file2,common_keys = compare_json_keys(file1, file2)
-
-
     except Exception as e:
         print(f"error:{e}")
         sys.exit(1)
