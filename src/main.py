@@ -75,6 +75,9 @@ class JSONComparatorApp:
         # todo 目前结果是存在txt中，看下能不能用kv键值对存在json中
         report_lines = []
         report_lines.append(f"JSON Key 比较报告: {file1_name} vs {file2_name}")
+        report_lines.append(
+            "为了避免重复的key造成歧义，会按上传的json层级给每个key增加前缀进行比较并用以区分每个key"
+        )
         report_lines.append("=" * 80)
         report_lines.append("")
 
@@ -167,10 +170,10 @@ class JSONComparatorApp:
                             content=ft.Text(f"报告已保存到: {e.path}"), action="OK"
                         )
                     )
-                except Exception as ex:
+                except Exception as e:
                     page.open(
                         ft.SnackBar(
-                            content=ft.Text(f"保存失败: {str(ex)}"),
+                            content=ft.Text(f"保存失败: {str(e)}"),
                             bgcolor=ft.Colors.RED,
                         )
                     )
@@ -322,7 +325,7 @@ class JSONComparatorApp:
                         color=ft.Colors.BLUE,
                     ),
                     ft.Text(
-                        "上传两个JSON格式的语言包文件，比较它们的key差异，",
+                        "上传两个JSON格式的语言包文件，比较它们的key差异，为了避免重复的key造成歧义，会按上传的json层级给每个key增加层级前缀后进行比较并用以区分每个key",
                         size=14,
                         color=ft.Colors.GREY,
                     ),
@@ -399,12 +402,14 @@ class JSONComparatorApp:
             file_selection,
             action_buttons,
             ft.Container(progress_bar, alignment=ft.alignment.center),
-            results_section
+            results_section,
         )
+
 
 def main(page: ft.Page):
     app = JSONComparatorApp()
     app.main(page)
+
 
 if __name__ == "__main__":
     ft.app(target=main)
