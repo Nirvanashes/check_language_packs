@@ -72,6 +72,7 @@ class JSONComparatorApp:
         """
         保存比较报告到文件
         """
+        # todo 目前是存在txt中，看下能不能用kv键值对存在json中
         report_lines = []
         report_lines.append(f"JSON Key 比较报告: {file1_name} vs {file2_name}")
         report_lines.append("=" * 50)
@@ -94,6 +95,7 @@ class JSONComparatorApp:
         if only_in_file1:
             report_lines.append(f"仅存在于 {file1_name} 的key:")
             report_lines.append("-" * 40)
+            # todo 不需要排序
             for key in sorted(only_in_file1):
                 report_lines.append(f"  {key}")
             report_lines.append("")
@@ -102,6 +104,7 @@ class JSONComparatorApp:
         if only_in_file2:
             report_lines.append(f"仅存在于 {file2_name} 的key:")
             report_lines.append("-" * 40)
+            # todo 不需要排序
             for key in sorted(only_in_file2):
                 report_lines.append(f"  {key}")
 
@@ -110,7 +113,7 @@ class JSONComparatorApp:
 
     def main(self, page: ft.Page):
         # 页面设置
-        page.title = "JSON语言包比较工具"
+        page.title = "本地化语言包比较工具"
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 20
         page.scroll = ft.ScrollMode.ADAPTIVE
@@ -161,13 +164,13 @@ class JSONComparatorApp:
                         e.path,
                     )
 
-                    page.show_snack_bar(
+                    page.open(
                         ft.SnackBar(
                             content=ft.Text(f"报告已保存到: {e.path}"), action="OK"
                         )
                     )
                 except Exception as ex:
-                    page.show_snack_bar(
+                    page.open(
                         ft.SnackBar(
                             content=ft.Text(f"保存失败: {str(ex)}"),
                             bgcolor=ft.Colors.RED,
@@ -176,7 +179,7 @@ class JSONComparatorApp:
 
         def compare_files(e):
             if not self.file1_path or not self.file2_path:
-                page.show_snack_bar(
+                page.open(
                     ft.SnackBar(
                         content=ft.Text("请先选择两个JSON文件"),
                         bgcolor=ft.Colors.ORANGE,
@@ -214,7 +217,7 @@ class JSONComparatorApp:
                                     f"{file2_name} 总key数: {len(only_in_file2) + len(common_keys)}"
                                 ),
                                 ft.Text(
-                                    f"共有key数: {len(common_keys)}",
+                                    f"相同key数: {len(common_keys)}",
                                     color=ft.Colors.GREEN,
                                 ),
                                 ft.Text(
@@ -236,7 +239,7 @@ class JSONComparatorApp:
                 )
                 result_ref.current.controls.append(stats_card)
 
-                # 显示缺失的key
+                # 显示差异的key
                 if only_in_file1:
                     missing_keys1 = ft.ExpansionTile(
                         title=ft.Text(
@@ -247,6 +250,7 @@ class JSONComparatorApp:
                             ft.ListView(
                                 [
                                     ft.ListTile(title=ft.Text(key))
+                                    # todo 是否需要排序
                                     for key in sorted(only_in_file1)
                                 ],
                                 height=200,
@@ -266,6 +270,7 @@ class JSONComparatorApp:
                             ft.ListView(
                                 [
                                     ft.ListTile(title=ft.Text(key))
+                                    # todo 是否需要排序
                                     for key in sorted(only_in_file2)
                                 ],
                                 height=200,
