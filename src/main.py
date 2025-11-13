@@ -98,7 +98,8 @@ class JSONComparatorApp:
         if only_in_file1:
             report_lines.append("=" * 80)
             report_lines.append(f"仅存在于 {file1_name} 的key:")
-            for key in sorted(only_in_file1):
+            # for key in sorted(only_in_file1):
+            for key in only_in_file1:
                 report_lines.append(f"  {key}")
             report_lines.append("")
 
@@ -106,7 +107,7 @@ class JSONComparatorApp:
         if only_in_file2:
             report_lines.append("=" * 80)
             report_lines.append(f"仅存在于 {file2_name} 的key:")
-            for key in sorted(only_in_file2):
+            for key in only_in_file2:
                 report_lines.append(f"  {key}")
 
         with open(save_path, "w", encoding="utf-8") as f:
@@ -251,7 +252,7 @@ class JSONComparatorApp:
                             ft.ListView(
                                 [
                                     ft.ListTile(title=ft.Text(key))
-                                    for key in sorted(only_in_file1)
+                                    for key in only_in_file1
                                 ],
                                 height=200,
                                 spacing=1,
@@ -270,7 +271,7 @@ class JSONComparatorApp:
                             ft.ListView(
                                 [
                                     ft.ListTile(title=ft.Text(key))
-                                    for key in sorted(only_in_file2)
+                                    for key in only_in_file2
                                 ],
                                 height=200,
                                 spacing=1,
