@@ -1,9 +1,7 @@
 import flet as ft
 import json
 from pathlib import Path
-from typing import Dict, Set, Tuple
-import tempfile
-import os
+from typing import Dict, List, Tuple
 
 
 class JSONComparatorApp:
@@ -14,21 +12,21 @@ class JSONComparatorApp:
         self.pick_files_dialog = ft.FilePicker()
         self.save_file_dialog = ft.FilePicker()
 
-    def extract_keys(self, data: Dict, prefix: str = "") -> Set[str]:
+    def extract_keys(self, data: Dict, prefix: str = "") -> List[str]:
         """
-        递归提取JSON中的所有key，支持嵌套结构
+        递归提取JSON中的所有key，支持嵌套结构，保持顺序
         """
-        keys = set()
+        keys = []
 
         for key, value in data.items():
             full_key = f"{prefix}.{key}" if prefix else key
 
             if isinstance(value, dict):
-                # 递归处理嵌套字典
+                # 递归处理嵌套字典，保持深度优先的顺序
                 nested_keys = self.extract_keys(value, full_key)
-                keys.update(nested_keys)
+                keys.extend(nested_keys)
             else:
-                keys.add(full_key)
+                keys.append(full_key)
 
         return keys
 
@@ -44,19 +42,25 @@ class JSONComparatorApp:
 
     def compare_json_files(
         self, file1_path: str, file2_path: str
-    ) -> Tuple[Set[str], Set[str], Set[str]]:
+    ) -> Tuple[List[str], List[str], List[str]]:
         """
-        比较两个JSON文件的key
+        比较两个JSON文件的key，保持顺序
         """
         data1 = self.load_json_from_file(file1_path)
         data2 = self.load_json_from_file(file2_path)
 
+        # 提取key（已保持顺序）
         keys1 = self.extract_keys(data1)
         keys2 = self.extract_keys(data2)
 
-        only_in_file1 = keys1 - keys2
-        only_in_file2 = keys2 - keys1
-        common_keys = keys1 & keys2
+        # 为了快速查找，使用集合
+        keys1_set = set(keys1)
+        keys2_set = set(keys2)
+
+        # 保持原始顺序
+        only_in_file1 = [key for key in keys1 if key not in keys2_set]
+        only_in_file2 = [key for key in keys2 if key not in keys1_set]
+        common_keys = [key for key in keys1 if key in keys2_set]
 
         return only_in_file1, only_in_file2, common_keys
 
@@ -64,21 +68,17 @@ class JSONComparatorApp:
         self,
         file1_name: str,
         file2_name: str,
-        only_in_file1: Set[str],
-        only_in_file2: Set[str],
-        common_keys: Set[str],
+        only_in_file1: List[str],
+        only_in_file2: List[str],
+        common_keys: List[str],
         save_path: str,
     ):
         """
-        保存比较报告到文件
+        保存比较报告到文件，保持key的原始顺序
         """
-        # todo 目前结果是存在txt中，看下能不能用kv键值对存在json中
         report_lines = []
         report_lines.append(f"JSON Key 比较报告: {file1_name} vs {file2_name}")
-        report_lines.append(
-            "为了避免重复的key造成歧义，会按上传的json层级给每个key增加前缀进行比较并用以区分每个key"
-        )
-        report_lines.append("=" * 80)
+        report_lines.append("=" * 50)
         report_lines.append("")
 
         # 统计信息
@@ -94,20 +94,19 @@ class JSONComparatorApp:
         report_lines.append(f"  仅存在于 {file2_name} 的key数: {len(only_in_file2)}")
         report_lines.append("")
 
-        # 仅存在于file1的key
+        # 仅存在于file1的key - 保持原顺序
         if only_in_file1:
-            report_lines.append("=" * 80)
             report_lines.append(f"仅存在于 {file1_name} 的key:")
-            # for key in sorted(only_in_file1):
-            for key in only_in_file1:
+            report_lines.append("-" * 40)
+            for key in only_in_file1:  # 直接使用已排序的列表
                 report_lines.append(f"  {key}")
             report_lines.append("")
 
-        # 仅存在于file2的key
+        # 仅存在于file2的key - 保持原顺序
         if only_in_file2:
-            report_lines.append("=" * 80)
             report_lines.append(f"仅存在于 {file2_name} 的key:")
-            for key in only_in_file2:
+            report_lines.append("-" * 40)
+            for key in only_in_file2:  # 直接使用已排序的列表
                 report_lines.append(f"  {key}")
 
         with open(save_path, "w", encoding="utf-8") as f:
@@ -241,7 +240,7 @@ class JSONComparatorApp:
                 )
                 result_ref.current.controls.append(stats_card)
 
-                # 显示差异的key
+                # 显示缺失的key - 保持原顺序
                 if only_in_file1:
                     missing_keys1 = ft.ExpansionTile(
                         title=ft.Text(
@@ -253,7 +252,7 @@ class JSONComparatorApp:
                                 [
                                     ft.ListTile(title=ft.Text(key))
                                     for key in only_in_file1
-                                ],
+                                ],  # 保持原顺序
                                 height=200,
                                 spacing=1,
                             )
@@ -272,7 +271,7 @@ class JSONComparatorApp:
                                 [
                                     ft.ListTile(title=ft.Text(key))
                                     for key in only_in_file2
-                                ],
+                                ],  # 保持原顺序
                                 height=200,
                                 spacing=1,
                             )
